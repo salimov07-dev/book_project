@@ -18,10 +18,18 @@ def store_menu():
 
 
 def auth_menu():
-    print(''' 1️⃣. Ro‘yxatdan o‘tish (Register)''')
-    print(''' 2️⃣. Tizimga kirish (Login)''')
-    print(''' 3️⃣. Tizimdan chiqish (Logout) ''')
-    print(''' 4️⃣. Ortga qaytish ''')
+    if not Auth.Auth.user:
+        print(''' 1️⃣. Ro‘yxatdan o‘tish (Register)''')
+    if not Auth.Auth.user:
+        print(''' 2️⃣. Tizimga kirish (Login)''')
+    if Auth.Auth.user:
+        print(''' 1️⃣. Hisob haqida malumot (Account details)''')
+    if Auth.Auth.user:
+        print(''' 2️⃣. Tizimdan chiqish (Logout) ''')
+    if Auth.Auth.user:
+        print(''' 3️⃣. Ortga qaytish ''')
+    else:
+        print(''' 3️⃣. Ortga qaytish ''')
 
 
 def user_menu():

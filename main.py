@@ -1,5 +1,6 @@
 #  importing libarires
 import pyodbc
+import re
 from tabulate import tabulate
 # --- import from packages ---
 import Menus
@@ -113,12 +114,16 @@ while True:
             Menus.auth_menu()
             command_number = int(input(f'{Bcolors.BOLD + Bcolors.HEADER + command_txt + Bcolors.ENDC}'))
             if command_number == 1:
-                Auth.Auth.register()
+                if not Auth.Auth.user:  # not user = kirmagan
+                    Auth.Auth.register()
+                else:
+                    Auth.Auth.acc_details()
             elif command_number == 2:
-                Auth.Auth.login()
+                if not Auth.Auth.user:
+                    Auth.Auth.login()
+                else:
+                    Auth.Auth.logout()
             elif command_number == 3:
-                Auth.Auth.logout()
-            else:
                 break
     elif command_number == 2:
         while True:
