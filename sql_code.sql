@@ -171,8 +171,7 @@ RETURN 0
 select * from books
 select * from inventory_logs
 select * from order_items
-select * from orders
-select * from users
+select * from orders 
 select * from reviews
 
 GO
@@ -222,4 +221,66 @@ where id = 7
 
 exec dbo.get_user_info 'Javlon Tursunov','javlon.tursunov@mail.com'
 
-select * from 
+select * from orders
+select * from users	
+
+
+select id,title,author,genre,stock_qty,price from books
+where stock_qty > 0
+
+select top 1 with ties id,title,author,genre,stock_qty,price from books
+where stock_qty > 0
+--order by 
+
+
+
+GO
+ALTER VIEW dbo.view_top_books
+AS
+with cte as(
+	select top 1 with ties * from order_items
+	order by quantity
+), cte_2 as (
+	select book_id,SUM(quantity) as sum from cte
+	group by book_id
+), cte_3 as(
+	select top 1 with ties book_id from cte_2
+	order by sum desc
+)
+
+select id,title,author,genre,stock_qty,price from books
+where id in (select * from cte_3)
+GO
+select * from dbo.view_top_books
+
+select * from books
+
+select * from users
+
+
+
+GO
+CREATE PROCEDURE dbo.insert_book 
+	@book_title varchar(45),
+	@book_author varchar(35),
+	@genre varchar(30),
+	@stock_qty int,
+	@price float
+AS
+	insert into books (title,author,genre,stock_qty,price) values (@book_title,@book_author,@genre,@stock_qty,@price)
+RETURN 0 
+
+GO
+exec dbo.insert_book 
+
+select * from books
+
+select * from inventory_logs
+
+select s1.id,s2.title,change_qty,reason,changed_at from inventory_logs s1
+join books s2
+on s1.book_id = s2.id
+
+
+select id,title,author,genre,stock_qty,price from books
+where stock_qty < 10

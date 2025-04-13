@@ -6,6 +6,8 @@ from tabulate import tabulate
 import Menus
 import Users
 import Auth
+import Book
+import Inventory
 
 connection = pyodbc.connect(
     "DRIVER={SQL Server};"
@@ -130,14 +132,48 @@ while True:
             Menus.user_menu()
             command_number = int(input(f'{Bcolors.BOLD + Bcolors.HEADER + command_txt + Bcolors.ENDC}'))
             if command_number == 1:
-                print('''1️⃣. Yangi foydalanuvchini qo‘shish''')
-            elif command_number == 2:
                 Users.Users.get_all_users()
-            elif command_number == 3:
+            elif command_number == 2:
                 Users.Users.get_user()
-            elif command_number == 4:
+            elif command_number == 3:
                 break
-    elif command_number == 8:
+    elif command_number == 3:
+        while True:
+            Menus.book_menu()
+            command_number = int(input(f'{Bcolors.BOLD + Bcolors.HEADER + command_txt + Bcolors.ENDC}'))
+            if command_number == 1:
+                if Auth.Auth.user:
+                    Book.Book.add_book()
+                else:
+                    Book.Book.get_books()
+            elif command_number == 2:
+                if Auth.Auth.user:
+                    pass
+                else:
+                    Book.Book.get_top_book()
+            elif command_number == 3:
+                if Auth.Auth.user:
+                    Book.Book.get_books()
+                else:
+                    break
+            elif command_number == 4:
+                if Auth.Auth.user:
+                    Book.Book.get_top_book()
+            elif command_number == 5:
+                if Auth.Auth.user:
+                    break
+
+    elif command_number == 5:
+        while True:
+            Menus.inventory_menu()
+            command_number = int(input(f'{Bcolors.BOLD + Bcolors.HEADER + command_txt + Bcolors.ENDC}'))
+            if command_number == 1:
+                Inventory.Inventory.backup_logs()
+            elif command_number == 2:
+                Inventory.Inventory.low_stock_books()
+            elif command_number == 3:
+                break
+    elif command_number == 7:
         break
 cursor.close()
 connection.close()

@@ -7,3 +7,7 @@ Menus/__pycache__/menus.cpython-313.pyc
 Solution1.ssmssln
 Users/__pycache__/__init__.cpython-313.pyc
 Users/__pycache__/user_classes.cpython-313.pyc
+Book/__pycache__/__init__.cpython-313.pyc
+Book/__pycache__/book_classes.cpython-313.pyc
+Inventory/__pycache__/__init__.cpython-313.pyc
+Inventory/__pycache__/inventory_classes.cpython-313.pyc
