@@ -1,13 +1,16 @@
-#  importing libarires
+# ---  Global Imports ---
 import pyodbc
 import re
 from tabulate import tabulate
-# --- import from packages ---
+import curses
+
+# --- Local Imports ---
 import Menus
 import Users
 import Auth
 import Book
 import Inventory
+import Buy
 
 connection = pyodbc.connect(
     "DRIVER={SQL Server};"
@@ -20,12 +23,6 @@ connection = pyodbc.connect(
 )
 cursor = connection.cursor()
 a = cursor.execute(''' use BookStore ''')
-
-# qry_1 = '''  select * from users '''
-# b = cursor.execute(qry_1)
-# print(b.fetchall())
-
-import curses
 
 
 class Bcolors:
@@ -106,6 +103,7 @@ class Bcolors:
 #
 # print(f"output:", menu('TEST', ['this will return 0', 'this will return 1',
 #                                 'this is just to show that you can do more options then just two'], 'blue'))
+
 command_txt = ''' Enter Command Number: '''
 while True:
     Menus.clean_terminal()
@@ -162,7 +160,27 @@ while True:
             elif command_number == 5:
                 if Auth.Auth.user:
                     break
+    elif command_number == 4:
+        while True:
+            Menus.orders_menu()
+            command_number = int(input(f'{Bcolors.BOLD + Bcolors.HEADER + command_txt + Bcolors.ENDC}'))
+            if not Auth.Auth.user:
+                print(f' {Bcolors.WARNING} You Should ( Register / login) to buy a new book(s) {Bcolors.ENDC}')
+            if Auth.Auth.user:
+                if command_number == 1:
+                    print(''' 1️⃣. Buyurtma yaratish (bir nechta kitob tanlash)''')
+            else:
+                break
 
+            if Auth.Auth.user:
+                if command_number == 2:
+                    Buy.BuyBook.decline_order()
+            if Auth.Auth.user:
+                if command_number == 3:
+                    Buy.BuyBook.see_orders()
+            if Auth.Auth.user:
+                if command_number == 4:
+                    break
     elif command_number == 5:
         while True:
             Menus.inventory_menu()

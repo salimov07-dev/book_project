@@ -284,3 +284,48 @@ on s1.book_id = s2.id
 
 select id,title,author,genre,stock_qty,price from books
 where stock_qty < 10
+
+
+
+
+select * from users
+GO
+CREATE PROCEDURE dbo.get_user_orders 
+	@user_email varchar(45)
+AS
+	select id,total_amount,status,ordered_at from orders
+	where user_id = (
+	select id from users
+		where email = @user_email
+	)
+RETURN 0
+
+exec dbo.get_user_orders 'ali.karimov@mail.com'
+
+
+GO
+CREATE PROCEDURE dbo.get_user_p_orders
+	@user_email varchar(45)
+AS
+	select id,total_amount,status,ordered_at from orders
+	where status = 'pending' and user_id = (
+	select id from users
+	where email = @user_email
+)
+RETURN 0
+
+select * from users
+select * from orders
+
+exec dbo.get_user_p_orders 'nodira.xusanova@mail.com'
+GO
+exec dbo.get_user_p_orders
+GO
+CREATE PROCEDURE dbo.cancel_orders 
+    @product_id int
+AS
+	update orders
+	set status = 'cancelled'
+	where id = @product_id
+RETURN 0 
+

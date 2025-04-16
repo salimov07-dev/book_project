@@ -2,6 +2,18 @@ import os
 import Auth
 
 
+class Bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
 def clean_terminal():
     os.system('cls' if os.name == 'nt' else 'clear')
 
@@ -62,9 +74,22 @@ def book_menu():
 
 
 def orders_menu():
-    print(''' 1️⃣. Buyurtma yaratish (bir nechta kitob tanlash)''')
-    print(''' 2️⃣. Buyurtmani bekor qilish''')
-    print(''' 3️⃣. Foydalanuvchining buyurtmalar tarixini ko‘rish''')
+    if not Auth.Auth.user:
+        print(f' {Bcolors.WARNING} You Should ( Register / login) to buy a new book(s) {Bcolors.ENDC}')
+    if Auth.Auth.user:
+        print(''' 1️⃣. Buyurtma yaratish (bir nechta kitob tanlash)''')
+    else:
+        pass
+    if Auth.Auth.user:
+        print(''' 2️⃣. Buyurtmani bekor qilish''')
+    else:
+        pass
+    if Auth.Auth.user:
+        print(''' 3️⃣. Foydalanuvchining buyurtmalar tarixini ko‘rish''')
+    if Auth.Auth.user:
+        print(''' 4️⃣ Ortga Qaytish ''')
+    else:
+        print(''' 1️⃣ Ortga Qaytish ''')
 
 
 def inventory_menu():
