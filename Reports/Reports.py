@@ -35,6 +35,17 @@ where ordered_at between DATEADD(MONTH,-1,getdate()) and GETDATE()'''
         result = connection.execute(query)
         rows = result.fetchall()
         headers = result.keys()
-
         print(tabulate(rows, headers=headers, tablefmt="grid"))
 
+    @staticmethod
+    def top_reviewed_books():
+        query = '''
+    SELECT b.id, b.title, COUNT(r.rating) AS total_ratings, AVG(r.rating) AS avg_rating
+    FROM books b
+    JOIN reviews r ON b.id = r.book_id
+    GROUP BY b.id, b.title
+    ORDER BY total_ratings DESC, avg_rating DESC
+'''
+        df = pd.read_sql(query, engine)
+        df.to_csv("top_rated_books.csv", index=False)
+        print("✅ CSV fayl muvaffaqiyatli saqlandi: top_rated_books.csv")

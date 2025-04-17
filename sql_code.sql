@@ -380,7 +380,17 @@ select * from dbo.select_top_buyers
 
 select * from users
 select * from books
+select * from reviews
 
+select * from books
 
 select * from order_items
 select * from inventory_logs
+
+
+select * from reviews
+    SELECT b.id, b.title, COUNT(r.rating) AS total_ratings, AVG(r.rating) AS avg_rating
+    FROM books b
+    JOIN reviews r ON b.id = r.book_id
+    GROUP BY b.id, b.title
+    ORDER BY total_ratings DESC, avg_rating DESC

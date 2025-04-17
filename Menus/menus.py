@@ -68,7 +68,11 @@ def book_menu():
     else:
         print(''' 2️⃣. Eng ko‘p sotilgan kitoblar ro‘yxatini chiqarish''')
     if Auth.Auth.user:
-        print(''' 5️⃣. Ortga qaytish ''')
+        print(''' 5️⃣ Otziv qoldirish ''')
+    else:
+        pass
+    if Auth.Auth.user:
+        print(''' 6️⃣. Ortga qaytish ''')
     else:
         print(''' 3️⃣. Ortga qaytish ''')
 

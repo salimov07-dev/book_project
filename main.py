@@ -148,7 +148,7 @@ while True:
                     Book.Book.get_books()
             elif command_number == 2:
                 if Auth.Auth.user:
-                    pass
+                    Book.Book.update_books_qty()
                 else:
                     Book.Book.get_top_book()
             elif command_number == 3:
@@ -160,6 +160,14 @@ while True:
                 if Auth.Auth.user:
                     Book.Book.get_top_book()
             elif command_number == 5:
+                if Auth.Auth.user:
+                    query = "SELECT id FROM users WHERE email = ?"
+                    user_id = cursor.execute(query, (Auth.Auth.info['user_email'],))
+                    result = user_id.fetchall()
+                    Book.Book.leave_feedback(result[0][0])
+                else:
+                    pass
+            elif command_number == 6:
                 if Auth.Auth.user:
                     break
     elif command_number == 4:
@@ -205,7 +213,7 @@ while True:
             elif command_number == 2:
                 Reports.Reports.top_buyers()
             elif command_number == 3:
-                print(''' Eng ko‘p baho olingan kitoblar ro‘yxati ''')
+                Reports.Reports.top_reviewed_books()
             elif command_number == 4:
                 break
     elif command_number == 7:
