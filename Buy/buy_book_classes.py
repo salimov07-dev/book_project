@@ -2,6 +2,8 @@ import pyodbc
 import Auth
 from tabulate import tabulate
 import curses
+import threading
+import time
 
 connection = pyodbc.connect(
     "DRIVER={SQL Server};"
@@ -81,31 +83,156 @@ def menu(title, classes, color='white'):
     return curses.wrapper(character)
 
 
+def check_orders_background():
+    while True:
+        cursor.execute('''
+            UPDATE orders
+            SET status = 'completed'
+            WHERE status = 'pending'
+            AND DATEDIFF(SECOND, ordered_at, GETDATE()) >= 300;
+        ''')
+        cursor.commit()
+        time.sleep(60)
+
+
+thread = threading.Thread(target=check_orders_background, daemon=True)
+
+
 class BuyBook:
     @staticmethod
-    def create_order():
-        pass
+    def create_order(user_id):
+        cart = {}  # product_id: quantity
+
+        def show_cart():
+            if not cart:
+                print("\n🛒 Savatcha bo‘sh.")
+                return
+
+            table = []
+            total_sum = 0
+            for book_id, quantity in cart.items():
+                cursor.execute("SELECT title, price FROM books WHERE id = ?", (book_id,))
+                book = cursor.fetchone()
+                if book:
+                    title, price = book
+                    total = price * quantity
+                    total_sum += total
+                    table.append([book_id, title, quantity, price, total])
+
+            headers = ["Product ID", "Kitob nomi", "Quantity", "Price", "Total"]
+            print(tabulate(table, headers=headers, tablefmt="fancy_grid"))
+            print(f"\n💰 Umumiy summa: {total_sum} so'm\n")
+
+            # Savatchadan mahsulot o‘chirish
+            while True:
+                remove = input("Mahsulot o‘chirmoqchimisiz? (product_id yozing yoki Enter): ").strip()
+                if not remove:
+                    break
+                if remove.isdigit():
+                    remove_id = int(remove)
+                    if remove_id in cart:
+                        del cart[remove_id]
+                        print(f"🗑 Mahsulot ID {remove_id} savatchadan o‘chirildi.")
+                        show_cart()
+                    else:
+                        print("❌ Bunday ID savatchada yo‘q.")
+                else:
+                    print("⚠️ Faqat ID kiriting yoki Enter bosing.")
+
+        while True:
+            print("\n--- Buyurtma Menyusi ---")
+            print("1️⃣ Mahsulot qo‘shish")
+            print("2️⃣ Savatchani ko‘rish")
+            print("3️⃣ Buyurtmani yakunlash")
+            print("0️⃣ Ortga qaytish")
+
+            command = input("Tanlang (1/2/3/0): ").strip()
+
+            if command == '0':
+                print("🔙 Ortga qaytdingiz. Savatcha saqlanmoqda.")
+                break
+
+            elif command == '2':
+                show_cart()
+
+            elif command == '3':
+                if not cart:
+                    print("⚠️ Savatcha bo‘sh. Buyurtma yaratib bo‘lmaydi.")
+                    continue
+
+                show_cart()
+                confirm = input("Tasdiqlaysizmi? (ha/yo‘q): ").strip().lower()
+                if confirm != 'ha':
+                    print("❌ Buyurtma bekor qilindi.")
+                    continue
+
+                # Buyurtma yaratish
+                total_amount = 0
+                for pid, qty in cart.items():
+                    cursor.execute("SELECT price FROM books WHERE id = ?", (pid,))
+                    total_amount += cursor.fetchone()[0] * qty
+
+                cursor.execute('''
+                    INSERT INTO orders (user_id, total_amount, status, ordered_at)
+                    VALUES (?, ?, 'pending', GETDATE());
+                ''', (user_id, total_amount))
+                cursor.execute('SELECT SCOPE_IDENTITY()')
+                order_id = cursor.fetchone()[0]
+
+                for pid, qty in cart.items():
+                    cursor.execute('''
+                        INSERT INTO order_items (order_id, book_id, quantity, price)
+                        SELECT ?, ?, ?, price FROM books WHERE id = ?;
+                    ''', (order_id, pid, qty, pid))
+
+                cursor.commit()
+                cart.clear()
+                print("✅ Buyurtma bazaga saqlandi (pending holatda)!")
+
+            elif command == '1':
+                try:
+                    product_id = int(input("Product ID: ").strip())
+                    quantity = int(input("Quantity: ").strip())
+                except ValueError:
+                    print("⚠️ Noto‘g‘ri format.")
+                    continue
+
+                if quantity <= 0:
+                    print("⚠️ Miqdor musbat bo‘lishi kerak.")
+                    continue
+
+                cursor.execute('SELECT title, stock_qty FROM books WHERE id = ?', (product_id,))
+                book = cursor.fetchone()
+                if book is None:
+                    print("❌ Kitob topilmadi.")
+                    continue
+
+                title, stock_qty = book
+                if quantity > stock_qty:
+                    print(f"❗ Faqat {stock_qty} dona mavjud.")
+                    continue
+
+                if product_id in cart:
+                    cart[product_id] += quantity
+                else:
+                    cart[product_id] = quantity
+
+                print(f"✅ Savatchaga qo‘shildi: {quantity} ta '{title}'")
+
+            else:
+                print("⚠️ Noto‘g‘ri tanlov. Qayta urinib ko‘ring.")
 
     @staticmethod
     def decline_order():
         query = ''' exec dbo.get_user_p_orders ? '''
         cursor.execute(query, Auth.Auth.info['user_email'])
         rows = cursor.fetchall()
-
         if rows:
             headers = [desc[0] for desc in cursor.description]
             print(tabulate(rows, headers=headers, tablefmt="grid"))
-
-            # Build options for the menu
             menu_options = [str(i[0]) + ' - product' for i in rows]
-
-            # Get the index selected by the user
             selected_index = menu('Choose product: ', menu_options, 'blue')
-
-            # Get the actual ID from the original rows using the index
             selected_id = rows[selected_index][0]
-
-            # Cancel the order with the selected ID
             cancel_query = ''' exec dbo.cancel_orders ? '''
             cursor.execute(cancel_query, (selected_id,))
             print(f"Order with ID {selected_id} has been canceled.")
@@ -123,3 +250,7 @@ class BuyBook:
             print(tabulate(rows, headers=headers, tablefmt="grid"))
         else:
             print('Zakazlar topilmadi ❗')
+
+
+if __name__ == "__main__":
+    thread.start()

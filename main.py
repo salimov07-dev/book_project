@@ -3,6 +3,7 @@ import pyodbc
 import re
 from tabulate import tabulate
 import curses
+import pandas
 
 # --- Local Imports ---
 import Menus
@@ -11,6 +12,7 @@ import Auth
 import Book
 import Inventory
 import Buy
+import Reports
 
 connection = pyodbc.connect(
     "DRIVER={SQL Server};"
@@ -168,7 +170,10 @@ while True:
                 print(f' {Bcolors.WARNING} You Should ( Register / login) to buy a new book(s) {Bcolors.ENDC}')
             if Auth.Auth.user:
                 if command_number == 1:
-                    print(''' 1️⃣. Buyurtma yaratish (bir nechta kitob tanlash)''')
+                    query = "SELECT id FROM users WHERE email = ?"
+                    user_id = cursor.execute(query, (Auth.Auth.info['user_email'],))
+                    result = user_id.fetchall()
+                    Buy.BuyBook.create_order(result[0][0])
             else:
                 break
 
@@ -190,6 +195,18 @@ while True:
             elif command_number == 2:
                 Inventory.Inventory.low_stock_books()
             elif command_number == 3:
+                break
+    elif command_number == 6:
+        while True:
+            Menus.reports_menu()
+            command_number = int(input(f'{Bcolors.BOLD + Bcolors.HEADER + command_txt + Bcolors.ENDC}'))
+            if command_number == 1:
+                Reports.Reports.monthly_reports()
+            elif command_number == 2:
+                Reports.Reports.top_buyers()
+            elif command_number == 3:
+                print(''' Eng ko‘p baho olingan kitoblar ro‘yxati ''')
+            elif command_number == 4:
                 break
     elif command_number == 7:
         break

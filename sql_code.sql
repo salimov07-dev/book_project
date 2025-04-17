@@ -329,3 +329,58 @@ AS
 	where id = @product_id
 RETURN 0 
 
+
+
+select * from books
+select * from inventory_logs -- bu yerga tushishi kerak orderlar
+select * from order_items -- bu yerga tushishi kerak orderlar
+select * from orders -- bu yerga tushishi kerak orderlar
+select * from reviews
+select * from users
+GO
+CREATE TRIGGER trg_insert_inventory_log
+ON order_items
+AFTER INSERT
+AS
+BEGIN
+    INSERT INTO inventory_logs (book_id, change_qty, reason, changed_at)
+    SELECT book_id, -quantity, 'Sale', GETDATE()
+    FROM inserted
+END
+
+
+select * from orders
+select * from users
+
+GO
+ALTER VIEW dbo.select_top_buyers
+AS
+	with cte as(
+	select s1.id,status,ordered_at,s5.price from users s1
+	join orders s2
+	on s1.id = s2.user_id
+	join inventory_logs s3
+	on s2.id = s3.id
+	join order_items s4
+	on s2.id = s4.book_id
+	join books s5
+	on s4.book_id = s5.id
+	where ordered_at between DATEADD(MONTH,-1,getdate()) and GETDATE()
+	),cte2 as (
+		select top 2 with ties id,COUNT(status) as cnt from cte
+		group by id
+		order by cnt desc
+	)
+
+	select s2.id,s2.name,s2.email,s2.phone,cnt as 'orders_count' from cte2 s1
+	join users s2
+	on s1.id = s2.id
+
+select * from dbo.select_top_buyers
+
+select * from users
+select * from books
+
+
+select * from order_items
+select * from inventory_logs

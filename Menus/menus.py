@@ -102,3 +102,4 @@ def reports_menu():
     print(''' 1️⃣. Oylik savdo hisoboti''')
     print(''' 2️⃣. Eng ko‘p buyurtma bergan foydalanuvchini ko‘rish''')
     print(''' 3️⃣. Eng ko‘p baho olingan kitoblar ro‘yxati''')
+    print(''' 4️⃣. Ortga qaytish ''')
